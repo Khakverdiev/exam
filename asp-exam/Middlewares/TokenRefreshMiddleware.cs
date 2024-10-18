@@ -42,12 +42,12 @@ public class TokenRefreshMiddleware : IMiddleware
             return;
         }
 
-        // if (!string.IsNullOrEmpty(accessToken) && !IsAccessTokenExpired(accessToken))
-        // {
-        //     await EnsureUsernameAndUserIdCookiesSet(context, accessToken, username, userId);
-        //     await next(context);
-        //     return;
-        // }
+        if (!string.IsNullOrEmpty(accessToken) && !IsAccessTokenExpired(accessToken))
+         {
+             await EnsureUsernameAndUserIdCookiesSet(context, accessToken, username, userId);
+             await next(context);
+             return;
+        }
 
         if (!string.IsNullOrEmpty(refreshToken))
         {

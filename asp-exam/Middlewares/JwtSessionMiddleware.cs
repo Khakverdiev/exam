@@ -13,7 +13,7 @@ public class JwtSessionMiddleware : IMiddleware
    
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        string? token = context.Request.Headers["Authorization"];
+        string? token = context.Request.Cookies["AccessToken"];
 
         if (string.IsNullOrWhiteSpace(token))
         {

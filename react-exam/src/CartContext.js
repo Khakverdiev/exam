@@ -1,16 +1,24 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
+import {useAuth} from "./AuthContext";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-    const [cartItems, setCartItems] = useState(() => {
-        const savedCart = localStorage.getItem("cart");
-        return savedCart ? JSON.parse(savedCart) : [];
-    });
+    const { userId } = useAuth();
+    const [cartItems, setCartItems] = useState([]);
 
     useEffect(() => {
-        localStorage.setItem("cart", JSON.stringify(cartItems));
-    }, [cartItems]);
+        if (userId) {
+            const savedCart = localStorage.getItem(`cart_${userId}`);
+            setCartItems(savedCart ? JSON.parse(savedCart) : []);
+        }
+    }, [userId]);
+
+    useEffect(() => {
+        if (userId) {
+            localStorage.setItem(`cart_${userId}`, JSON.stringify(cartItems));
+        }
+    }, [cartItems, userId]);
 
     const addItemToCart = (product) => {
         setCartItems((prevCartItems) => {
@@ -21,14 +29,15 @@ export const CartProvider = ({ children }) => {
                         ? { ...item, quantity: item.quantity + product.quantity }
                         : item
                 );
+            } else {
+                return [...prevCartItems, {
+                    productId: product.productId,
+                    name: product.name,
+                    price: product.price,
+                    imageUrl: product.imageUrl,
+                    quantity: product.quantity
+                }];
             }
-            return [...prevCartItems, { 
-                productId: product.productId, 
-                name: product.name, 
-                price: product.price, 
-                imageUrl: product.imageUrl, 
-                quantity: product.quantity
-              }];
         });
     };
 

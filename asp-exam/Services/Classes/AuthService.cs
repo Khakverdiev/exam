@@ -5,6 +5,7 @@ using aspnetexam.Data.Models;
 using aspnetexam.Exceptions;
 using aspnetexam.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using static BCrypt.Net.BCrypt;
 
 namespace aspnetexam.Services.Classes;
@@ -44,7 +45,8 @@ public class AuthService : IAuthService
                 Username = foundUser.Username,
                 AccessToken = await tokenService.GenerateTokenAsync(foundUser),
                 RefreshToken = await tokenService.GenerateRefreshTokenAsync(),
-                RefreshTokenExpireTime = DateTime.Now.AddDays(1)
+                RefreshTokenExpireTime = DateTime.Now.AddDays(1),
+                Role = foundUser.Role
             };
             
             foundUser.RefreshToken = tokenData.RefreshToken;
@@ -88,24 +90,22 @@ public class AuthService : IAuthService
             throw new MyAuthException(AuthErrorTypes.InvalidToken, "Refresh token is invalid or expired");
         }
 
-        // Генерируем новые токены
         var newAccessToken = await tokenService.GenerateTokenAsync(user);
         var newRefreshToken = await tokenService.GenerateRefreshTokenAsync();
 
-        // Обновляем refreshToken в базе данных
         user.RefreshToken = newRefreshToken;
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(30); // Обновляем срок действия refreshToken
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(30);
 
         await context.SaveChangesAsync();
 
-        // Возвращаем AccessInfo с новыми токенами
         return new AccessInfo
         {
             UserId = user.Id,
             Username = user.Username,
             AccessToken = newAccessToken,
             RefreshToken = newRefreshToken,
-            RefreshTokenExpireTime = user.RefreshTokenExpiryTime
+            RefreshTokenExpireTime = user.RefreshTokenExpiryTime,
+            Role = user.Role
         };
     }
 

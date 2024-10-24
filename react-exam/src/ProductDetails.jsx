@@ -47,28 +47,33 @@ const ProductDetails = () => {
         token = await refreshAccessToken();
       }
 
+      const reviewData = {
+        userId,
+        productId: id,
+        reviewText: reviewText.trim(),
+        rating,
+      };
+
       const response = await axios.post(
-        'https://localhost:7131/api/review',
-        {
-          userId,
-          productId: id,
-          reviewText,
-          rating,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true
-        }
+          'https://localhost:7131/api/review',
+          reviewData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            withCredentials: true
+          }
       );
-      console.log('Review submitted:', response.data);
       setReviewText('');
       setRating(1);
     } catch (error) {
-      console.error('Error submitting review:', error);
-      setError('Error submitting review.');
+      if (error.response && error.response.status === 403) {
+        setError('Пожалуйста, подтвердите свою электронную почту, чтобы оставить отзыв.');
+      } else {
+        console.error('Error submitting review:', error);
+        setError('Ошибка при отправке отзыва.');
+      }
     }
   };
 
@@ -89,64 +94,78 @@ const ProductDetails = () => {
   if (!product) return <p>Product not found.</p>;
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="max-w-lg mx-auto p-4 border rounded shadow bg-white">
-        <h2 className="text-3xl font-bold mb-4">{product.name}</h2>
-        <p className="text-lg mb-2">Description: {product.description}</p>
-        <p className="text-lg mb-2">Price: ${product.price}</p>
-        <p className="text-lg mb-2">Available: {product.quantity}</p>
-        <div className="flex items-center justify-center mb-4">
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="max-w-full h-auto"
-          />
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-screen mt-20">
+        <div className="max-w-lg mx-auto p-4 border rounded shadow bg-white">
+          <h2 className="text-3xl font-bold mb-4">{product.name}</h2>
+          <p className="text-lg mb-2">Description: {product.description}</p>
+          <p className="text-lg mb-2">Price: ${product.price}</p>
+          <p className="text-lg mb-2">Available: {product.quantity}</p>
+          <div className="flex items-center justify-center mb-4">
+            <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="max-w-full h-auto"
+            />
+          </div>
 
-        <div className="mt-6">
-          <h3 className="text-2xl font-semibold mb-2">Leave a Review</h3>
-          <form onSubmit={handleReviewSubmit}>
-            <div className="mb-4">
-              <label className="block text-lg">Rating</label>
-              <select
-                value={rating}
-                onChange={(e) => setRating(Number(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded"
+          <div className="mt-6">
+            <h3 className="text-2xl font-semibold mb-2">Leave a Review</h3>
+            <form onSubmit={handleReviewSubmit}>
+              <div className="mb-4">
+                <label className="block text-lg">Rating</label>
+                <select
+                    value={rating}
+                    onChange={(e) => setRating(Number(e.target.value))}
+                    className="w-full p-2 border border-gray-300 rounded"
+                >
+                  {[1, 2, 3, 4, 5].map((num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-lg">Review</label>
+                <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    rows="4"
+                    required
+                />
+              </div>
+              <button
+                  type="submit"
+                  className="w-full bg-black text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300"
               >
-                {[1, 2, 3, 4, 5].map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block text-lg">Review</label>
-              <textarea
-                value={reviewText}
-                onChange={(e) => setReviewText(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                rows="4"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-black text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300"
-            >
-              Submit Review
-            </button>
-          </form>
+                Submit Review
+              </button>
+            </form>
+          </div>
+
+          <button
+              onClick={() => navigate(-1)}
+              className="w-full mt-4 bg-black text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300"
+          >
+            Back
+          </button>
         </div>
 
-        <button
-          onClick={() => navigate(-1)}
-          className="w-full mt-4 bg-black text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300"
-        >
-          Back
-        </button>
+        <div className="mt-8 text-center">
+          <p className="text-red-600 mb-4">
+            Attention! To leave a review, you need to confirm your email.
+          </p>
+          <button
+              onClick={() => navigate('/profile')}
+              className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-700 transition duration-300"
+          >
+            Confirm Email
+          </button>
+          <br/>
+          <br/>
+        </div>
       </div>
-    </div>
   );
 };
 

@@ -4,7 +4,6 @@ import Footer from "./Footer";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "./CartContext";
-import Cookies from "js-cookie";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -28,7 +27,8 @@ const Home = () => {
     try {
       let token = accessToken;
 
-      if (isTokenExpired(accessToken)) {
+      if (isTokenExpired(token)) {
+        console.log("AccessToken истек, обновляем...");
         token = await refreshAccessToken();
         if (!token) {
           setError("Не удалось обновить токен. Пожалуйста, выполните повторный вход.");
@@ -41,7 +41,7 @@ const Home = () => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        withCredentials: true
+        withCredentials: true,
       });
 
       setProducts(response.data.$values || response.data);
@@ -54,7 +54,17 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchProducts();
+    const checkAndFetchProducts = async () => {
+      let token = accessToken;
+      if (isTokenExpired(token)) {
+        navigate("/profile")
+        navigate("/home")
+        return;
+      }
+      fetchProducts();
+    };
+
+    checkAndFetchProducts();
   }, [accessToken]);
 
   const handleBuy = (productId) => {
@@ -94,55 +104,55 @@ const Home = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen pt-16">
-      <div className="flex-grow px-4 py-10">
-        <h1 className="text-3xl md:text-5xl font-bold text-center mb-6">Home</h1>
-        {loading ? (
-          <p className="text-center">Loading...</p>
-        ) : error ? (
-          <p className="text-center text-red-500">{error}</p>
-        ) : Array.isArray(products) && products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="border border-gray-200 rounded-lg shadow-md p-6 bg-white hover:shadow-lg transition-shadow duration-300"
-              >
-                <h2 className="text-lg md:text-xl font-semibold mb-2">{product.name}</h2>
-                <p className="text-gray-700 mb-4">Price: ${product.price}</p>
-                <p className="text-gray-700 mb-4">In stock: {product.quantity}</p>
-                <div
-                  className="p-4 h-48 md:h-64 flex items-center justify-center cursor-pointer bg-gray-100 rounded mb-4 transition-transform duration-300 hover:scale-105"
-                  onClick={() => handleProductClick(product.id)}
-                >
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="max-w-full max-h-full object-contain"
-                  />
-                </div>
-                <input
-                  type="number"
-                  min="1"
-                  defaultValue={1}
-                  onChange={(e) => handleQuantityChange(product.id, Number(e.target.value))}
-                  className="mt-2 w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-                <button
-                  onClick={() => handleBuy(product.id)}
-                  className="mt-4 w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300"
-                >
-                  Buy
-                </button>
+      <div className="flex flex-col min-h-screen pt-16">
+        <div className="flex-grow px-4 py-10">
+          <h1 className="text-3xl md:text-5xl font-bold text-center mb-6">Home</h1>
+          {loading ? (
+              <p className="text-center">Loading...</p>
+          ) : error ? (
+              <p className="text-center text-red-500">{error}</p>
+          ) : Array.isArray(products) && products.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
+                {products.map((product) => (
+                    <div
+                        key={product.id}
+                        className="border border-gray-200 rounded-lg shadow-md p-6 bg-white hover:shadow-lg transition-shadow duration-300"
+                    >
+                      <h2 className="text-lg md:text-xl font-semibold mb-2">{product.name}</h2>
+                      <p className="text-gray-700 mb-4">Price: ${product.price}</p>
+                      <p className="text-gray-700 mb-4">In stock: {product.quantity}</p>
+                      <div
+                          className="p-4 h-48 md:h-64 flex items-center justify-center cursor-pointer bg-gray-100 rounded mb-4 transition-transform duration-300 hover:scale-105"
+                          onClick={() => handleProductClick(product.id)}
+                      >
+                        <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="max-w-full max-h-full object-contain"
+                        />
+                      </div>
+                      <input
+                          type="number"
+                          min="1"
+                          defaultValue={1}
+                          onChange={(e) => handleQuantityChange(product.id, Number(e.target.value))}
+                          className="mt-2 w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                      <button
+                          onClick={() => handleBuy(product.id)}
+                          className="mt-4 w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300"
+                      >
+                        Buy
+                      </button>
+                    </div>
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-center">No products available.</p>
-        )}
+          ) : (
+              <p className="text-center">No products available.</p>
+          )}
+        </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
   );
 };
 

@@ -13,6 +13,9 @@ import ConfirmEmail from "./Auth/ConfirmEmail";
 import { Navigate } from "react-router-dom";
 import UpdateProfile from "./UpdateProfile";
 import ResetPassword from "./Auth/ResetPassword";
+import ShowReviews from "./ShowReviews";
+import MyReview from "./MyReview";
+import PrivateRoute from "./PrivateRoute";
 
 const routes = [
   {
@@ -33,7 +36,11 @@ const routes = [
       },
       {
         path: "home",
-        element: <Home />,
+        element: (
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+        ),
       },
       {
         path: "about-us",
@@ -53,7 +60,19 @@ const routes = [
       },
       {
         path: "order",
-        element: <Order />
+        element: (
+            <PrivateRoute>
+              <Order />
+            </PrivateRoute>
+        )
+      },
+      {
+        path: "order-confirmation/:orderId",
+        element: (
+            <PrivateRoute>
+              <Order />
+            </PrivateRoute>
+        )
       },
       {
         path: "product/:id",
@@ -61,19 +80,47 @@ const routes = [
       },
       {
         path: "profile",
-        element: <Profile/>
+        element: (
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+        )
       },
       {
         path: "profile/confirm-email",
-        element: <ConfirmEmail />
+        element: (
+            <PrivateRoute>
+              <ConfirmEmail />
+            </PrivateRoute>
+        )
       },
       {
         path: "profile/update-profile",
-        element: <UpdateProfile/>
+        element: (
+            <PrivateRoute>
+              <UpdateProfile/>
+            </PrivateRoute>
+        )
       },
       {
         path: "profile/change-password",
-        element: <ResetPassword/>
+        element: (
+            <PrivateRoute>
+              <ResetPassword/>
+            </PrivateRoute>
+        )
+      },
+      {
+        path: "profile/my-reviews",
+        element: (
+            <PrivateRoute>
+              <MyReview/>
+            </PrivateRoute>
+        )
+      },
+      {
+        path: "reviews",
+        element: <ShowReviews/>
       }
     ],
   },

@@ -13,6 +13,7 @@ public static class OrderMapper
             ShippingAddress = new ShippingAddress
             {
                 Country = dto.ShippingAddress.Country,
+                City = dto.ShippingAddress.City,
                 FirstName = dto.ShippingAddress.FirstName,
                 LastName = dto.ShippingAddress.LastName,
                 Address = dto.ShippingAddress.Address,
@@ -53,6 +54,7 @@ public static class OrderMapper
             ShippingAddress = new ShippingAddressDto
             {
                 Country = order.ShippingAddress?.Country,
+                City = order.ShippingAddress?.City,
                 FirstName = order.ShippingAddress?.FirstName,
                 LastName = order.ShippingAddress?.LastName,
                 Address = order.ShippingAddress?.Address,

@@ -1,9 +1,11 @@
 ﻿using System.Security.Claims;
+using aspnetexam.Data.Contexts;
 using aspnetexam.Data.Models;
 using aspnetexam.Exceptions;
 using aspnetexam.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace aspnetexam.Controllers;
 
@@ -13,11 +15,13 @@ public class AccountController : ControllerBase
 {
     private readonly IAccountService accountService;
     private readonly ITokenService tokenService;
+    private readonly AuthContext _context;
 
-    public AccountController(IAccountService accountService, ITokenService tokenService)
+    public AccountController(IAccountService accountService, ITokenService tokenService, AuthContext context)
     {
         this.accountService = accountService;
         this.tokenService = tokenService;
+        _context = context;
     }
 
     [Authorize]
@@ -45,28 +49,47 @@ public class AccountController : ControllerBase
     {
         try
         {
-            var token = HttpContext.Request.Headers["Authorization"];
+            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
-            token = token.ToString().Replace("Bearer ", "");
+            var principal = tokenService.GetPrincipalFromExpiredToken(token, validateLifetime: true);
 
-            var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            var userId = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            if (userIdClaim == null)
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id.ToString() == userId);
+            if (user == null)
             {
-                return BadRequest("User ID not found in token.");
+                return BadRequest("User not found.");
             }
 
-            var userId = userIdClaim.Value;
+            if (user.IsEmailConfirmed)
+            {
+                return BadRequest("Email already confirmed.");
+            }
 
-            var confirmationToken = tokenService.GenerateEmailTokenAsync(userId);
+            user.IsEmailConfirmed = true;
 
-            await accountService.ConfirmEmailAsync(token);
+            var newAccessToken = await tokenService.GenerateTokenAsync(user);
+            var newRefreshToken = await tokenService.GenerateRefreshTokenAsync();
 
-            return Ok(new { Token = confirmationToken });
+            user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(30);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                UserId = user.Id,
+                Username = user.Username,
+                Role = user.Role,
+                RefreshTokenExpireTime = user.RefreshTokenExpiryTime
+            });
         }
-        catch
+        catch (Exception ex)
         {
-            throw;
+            Console.WriteLine($"Error confirming email: {ex.Message}");
+            return StatusCode(500, "An error occurred during email confirmation.");
         }
     }
 

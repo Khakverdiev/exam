@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.WebSockets;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,6 +11,7 @@ using aspnetexam.Middlewares;
 using aspnetexam.Services.Classes;
 using aspnetexam.Services.Interfaces;
 using aspnetexam.Validators;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.WebSockets;
 
@@ -19,7 +21,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.WithOrigins("https://localhost:3000", "https://localhost:7131")
+        builder.WithOrigins("https://localhost:3000", "https://localhost:3001", "https://localhost:7131")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -111,6 +113,13 @@ builder.Services.AddScoped<GlobalExceptionMiddleware>();
 builder.Services.AddScoped<JwtSessionMiddleware>();
 builder.Services.AddScoped<TokenRefreshMiddleware>();
 builder.Services.AddSingleton<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IBlobService, BlobService>();
+var blobConnectionString = builder.Configuration.GetValue<string>("BlobConnection:ConnectionString");
+
+Debug.WriteLine($"Blob connection string: {blobConnectionString}");
+
+builder.Services.AddSingleton(x => new BlobServiceClient(blobConnectionString));
 
 var app = builder.Build();
 

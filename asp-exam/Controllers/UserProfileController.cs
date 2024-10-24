@@ -1,5 +1,6 @@
 ﻿using aspnetexam.Data.Contexts;
 using aspnetexam.Data.Models;
+using aspnetexam.Data.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,7 @@ public class UserProfileController : Controller
 
 
     [HttpGet("{userId}")]
-    public async Task<ActionResult<UserProfile>> GetUserProfile(Guid userId)
+    public async Task<ActionResult<UserProfileDto>> GetUserProfile(Guid userId)
     {
         var userProfile = await _context.UserProfiles
             .FirstOrDefaultAsync(up => up.UserId == userId);
@@ -27,8 +28,20 @@ public class UserProfileController : Controller
         {
             return NotFound();
         }
+        
+        var userProfileDto = new UserProfileDto
+        {
+            UserId = userProfile.UserId,
+            FirstName = userProfile.FirstName,
+            LastName = userProfile.LastName,
+            PhoneNumber = userProfile.PhoneNumber,
+            Address = userProfile.Address,
+            City = userProfile.City,
+            Country = userProfile.Country,
+            PostalCode = userProfile.PostalCode
+        };
 
-        return Ok(userProfile);
+        return Ok(userProfileDto);
     }
 
     [HttpPut("{userId}")]

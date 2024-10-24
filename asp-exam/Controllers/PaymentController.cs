@@ -1,4 +1,5 @@
-﻿using aspnetexam.Data.Contexts;
+﻿using System.Globalization;
+using aspnetexam.Data.Contexts;
 using aspnetexam.Data.Models;
 using aspnetexam.Data.Models.DTOs;
 using aspnetexam.Mappers;
@@ -15,12 +16,10 @@ namespace aspnetexam.Controllers;
 public class PaymentController : ControllerBase
 {
     private readonly AuthContext _context;
-    private IPaymentProviderService _paymentProviderService;
 
-    public PaymentController(AuthContext context, IPaymentProviderService paymentProviderService)
+    public PaymentController(AuthContext context)
     {
         _context = context;
-        _paymentProviderService = paymentProviderService;
     }
 
     [HttpPost("process")]
@@ -28,48 +27,37 @@ public class PaymentController : ControllerBase
     public async Task<IActionResult> ProcessPayment([FromBody] PaymentRequestDto paymentRequestDto)
     {
         var user = await _context.Users.FindAsync(paymentRequestDto.UserId);
-        
         if (user == null)
         {
             return NotFound("User not found.");
         }
-        
-        var paymentDetails = new PaymentDetails
+
+        if (!IsPaymentValid(paymentRequestDto.PaymentDetails))
         {
-            CardNumber = paymentRequestDto.PaymentDetails.CardNumber,
-            CardExpiry = paymentRequestDto.PaymentDetails.CardExpiry,
-            CardCVV = paymentRequestDto.PaymentDetails.CardCVV
-        };
-        
-        var paymentResponse = await _paymentProviderService.ProcessPaymentAsync(
-            paymentRequestDto.PaymentProvider,
-            paymentRequestDto.Amount,
-            paymentDetails
-        );
-        
-        if (paymentResponse == null || paymentResponse.PaymentStatus != "Success")
-        {
-            return BadRequest("Payment failed. Please try again.");
+            return BadRequest("Invalid payment details.");
         }
-        
+
+        var paymentStatus = SimulatePayment();
+        var transactionId = Guid.NewGuid().ToString();
+
         var payment = new Payment
         {
             UserId = paymentRequestDto.UserId,
             PaymentProvider = paymentRequestDto.PaymentProvider,
-            PaymentStatus = paymentResponse.PaymentStatus,
+            PaymentStatus = paymentStatus,
             Amount = paymentRequestDto.Amount,
-            TransactionId = paymentResponse.TransactionId,
-            PaymentDate = paymentResponse.PaymentDate,
+            TransactionId = transactionId,
+            PaymentDate = DateTime.UtcNow,
             User = user
         };
-        
+
         _context.Payments.Add(payment);
         await _context.SaveChangesAsync();
-        
+
         var paymentDto = payment.ToPaymentDto();
         return Ok(paymentDto);
     }
-    
+
     [HttpGet("{id}")]
     [Authorize(Roles = "appuser, appadmin")]
     public async Task<IActionResult> GetPaymentById(int id)
@@ -85,5 +73,36 @@ public class PaymentController : ControllerBase
 
         var paymentDto = payment.ToPaymentDto();
         return Ok(paymentDto);
+    }
+
+    private bool IsPaymentValid(PaymentDetailsDto paymentDetails)
+    {
+        if (string.IsNullOrEmpty(paymentDetails.CardNumber) || paymentDetails.CardNumber.Length != 16)
+        {
+            return false;
+        }
+
+        DateTime expiryDate;
+        if (!DateTime.TryParseExact(paymentDetails.CardExpiry, "MM/yy", null, DateTimeStyles.None, out expiryDate))
+        {
+            return false;
+        }
+
+        if (expiryDate < DateTime.UtcNow)
+        {
+            return false;
+        }
+
+        if (paymentDetails.CardCVV.ToString().Length < 3 || paymentDetails.CardCVV.ToString().Length > 4)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private string SimulatePayment()
+    {
+        return "Success";
     }
 }

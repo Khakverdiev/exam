@@ -50,7 +50,7 @@ const Profile = () => {
   if (error) return <p>{error}</p>;
 
   return (
-    <div className="flex flex-col min-h-screen pt-16"> {/* Adjusted padding here */}
+    <div className="flex flex-col min-h-screen pt-16">
       <div className="container mx-auto p-4 sm:p-6 flex-grow">
         <h1 className="text-2xl sm:text-3xl font-bold mb-6 text-center">User Profile</h1>
         <div className="bg-gray-100 shadow-lg rounded-lg p-4 sm:p-8 max-w-xl mx-auto">
@@ -93,6 +93,10 @@ const Profile = () => {
               className="bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition duration-300"
             >
               Change Password
+            </button>
+            <button onClick={() => navigate("/profile/my-reviews")}
+            className="bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition duration-300">
+              My reviews
             </button>
           </div>
         </div>

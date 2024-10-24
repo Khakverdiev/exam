@@ -9,11 +9,11 @@ using aspnetexam.Data.Contexts;
 
 #nullable disable
 
-namespace aspnetexam.Migrations
+namespace aspexam.Migrations
 {
     [DbContext(typeof(AuthContext))]
-    [Migration("20241014060043_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20241024081126_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -290,6 +290,10 @@ namespace aspnetexam.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -491,17 +495,21 @@ namespace aspnetexam.Migrations
 
             modelBuilder.Entity("aspnetexam.Data.Models.Review", b =>
                 {
-                    b.HasOne("aspnetexam.Data.Models.Product", null)
+                    b.HasOne("aspnetexam.Data.Models.Product", "Product")
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("aspnetexam.Data.Models.User", null)
+                    b.HasOne("aspnetexam.Data.Models.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("aspnetexam.Data.Models.UserProfile", b =>
@@ -509,7 +517,8 @@ namespace aspnetexam.Migrations
                     b.HasOne("aspnetexam.Data.Models.User", "User")
                         .WithOne()
                         .HasForeignKey("aspnetexam.Data.Models.UserProfile", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("aspnetexam.Data.Models.User", null)
                         .WithOne("UserProfile")

@@ -42,6 +42,7 @@ const Navbar = () => {
             <li><Link to="/about-us" className="text-lg font-semibold hover:underline">About Us</Link></li>
             <li><Link to="/contacts" className="text-lg font-semibold hover:underline">Contacts</Link></li>
             <li><Link to="/delivery" className="text-lg font-semibold hover:underline">Delivery and Payment</Link></li>
+            <li><Link to="/reviews" className="text-lg font-semibold hover:underline">Reviews</Link></li>
           </ul>
         </div>
 
@@ -63,16 +64,28 @@ const Navbar = () => {
       <div className={`md:hidden ${isMenuOpen ? "block" : "hidden"} bg-black w-full mt-4`}>
         <ul className="flex flex-col items-center space-y-4 py-4">
           <li><Link to="/home" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>Home</Link></li>
-          <li><Link to="/about-us" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>About Us</Link></li>
-          <li><Link to="/contacts" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>Contacts</Link></li>
-          <li><Link to="/delivery" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>Delivery and Payment</Link></li>
+          <li><Link to="/about-us" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>About
+            Us</Link></li>
+          <li><Link to="/contacts" className="text-lg font-semibold hover:underline"
+                    onClick={toggleMenu}>Contacts</Link></li>
+          <li><Link to="/delivery" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>Delivery and
+            Payment</Link></li>
+          <li><Link to="/reviews" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>Reviews</Link></li>
           {username ? (
-            <>
-              <li><Link to="/profile" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>{username}</Link></li>
-              <li><button onClick={() => { handleLogoutClick(); toggleMenu(); }} className="text-lg font-semibold hover:underline">Logout</button></li>
-            </>
+              <>
+                <li><Link to="/profile" className="text-lg font-semibold hover:underline"
+                          onClick={toggleMenu}>{username}</Link></li>
+                <li>
+                  <button onClick={() => {
+                    handleLogoutClick();
+                    toggleMenu();
+                  }} className="text-lg font-semibold hover:underline">Logout
+                  </button>
+                </li>
+              </>
           ) : (
-            <li><Link to="/login" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>Login</Link></li>
+              <li><Link to="/login" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>Login</Link>
+              </li>
           )}
         </ul>
       </div>

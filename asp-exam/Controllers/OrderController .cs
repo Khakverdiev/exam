@@ -23,37 +23,49 @@ public class OrderController : Controller
     [Authorize(Roles = "appuser, appadmin")]
     public async Task<IActionResult> CreateOrder([FromBody] OrderRequestDto request)
     {
-        var user = await _context.Users.FindAsync(request.UserId);
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
-        if (user == null)
+        try
         {
-            return NotFound("User not found.");
-        }
+            var user = await _context.Users.FindAsync(request.UserId);
 
-        var order = request.ToOrder();
-        order.User = user;
-        
-        foreach (var item in order.OrderItems)
-        {
-            var product = await _context.Products.FindAsync(item.ProductId);
-            if (product == null)
+            if (user == null)
             {
-                return NotFound($"Product with ID {item.ProductId} not found.");
+                return NotFound("User not found.");
             }
+
+            var order = request.ToOrder();
+            order.User = user;
             
-            if (product.Quantity < item.Quantity)
+            foreach (var item in order.OrderItems)
             {
-                return BadRequest($"Not enough stock for product: {product.Name}. Available: {product.Quantity}, Requested: {item.Quantity}");
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product == null)
+                {
+                    return NotFound($"Product with ID {item.ProductId} not found.");
+                }
+
+                if (product.Quantity < item.Quantity)
+                {
+                    return BadRequest($"Not enough stock for product: {product.Name}. Available: {product.Quantity}, Requested: {item.Quantity}");
+                }
+
+                product.Quantity -= item.Quantity;
             }
-            
-            product.Quantity -= item.Quantity;
+
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            var orderDto = order.ToOrderDto();
+            return Ok(orderDto);
         }
-        
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
-        
-        var orderDto = order.ToOrderDto();
-        return Ok(orderDto);
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, $"An error occurred while creating the order: {ex.Message}");
+        }
     }
 
     [HttpGet("{orderId}")]
@@ -73,6 +85,39 @@ public class OrderController : Controller
             return NotFound("Order not found.");
         }
         
+        var orderDto = order.ToOrderDto();
+        return Ok(orderDto);
+    }
+
+    [HttpGet("all")]
+    [Authorize(Roles = "appadmin")]
+    public async Task<IActionResult> GetAllOrders()
+    {
+        var orders = await _context.Orders
+            .Include(o => o.User)
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .Include(o => o.ShippingAddress)
+            .ToListAsync();
+
+        var ordersDto = orders.Select(o => o.ToOrderDto()).ToList();
+        return Ok(ordersDto);
+    }
+
+    [HttpPut("{orderId}/update-status")]
+    [Authorize(Roles = "appadmin")]
+    public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] string newStatus)
+    {
+        var order = await _context.Orders.FindAsync(orderId);
+
+        if (order == null)
+        {
+            return NotFound("Order not found.");
+        }
+
+        order.Status = newStatus;
+        await _context.SaveChangesAsync();
+
         var orderDto = order.ToOrderDto();
         return Ok(orderDto);
     }

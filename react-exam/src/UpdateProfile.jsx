@@ -24,7 +24,7 @@ const UpdateProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get(`http://localhost:5175/api/v1/userprofile/${userId}`, {
+        const response = await axios.get(`https://localhost:7131/api/userprofile/${userId}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -70,110 +70,110 @@ const UpdateProfile = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="p-4 sm:p-6 flex-grow">
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md w-full max-w-lg mx-auto mt-8 flex-grow">
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center">Update Profile</h2>
-          {error && <p className="text-red-500 mb-4">{error}</p>}
-          {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
-          <form onSubmit={handleUpdateProfile}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-gray-700">First Name</label>
+      <div className="flex flex-col min-h-screen mt-20"> {/* Добавил отступ сверху */}
+        <div className="p-4 sm:p-6 flex-grow">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md w-full max-w-lg mx-auto mt-8 flex-grow">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-center">Update Profile</h2>
+            {error && <p className="text-red-500 mb-4">{error}</p>}
+            {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
+            <form onSubmit={handleUpdateProfile}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700">First Name</label>
+                  <input
+                      type="text"
+                      name="firstName"
+                      value={profile.firstName}
+                      onChange={handleChange}
+                      className="border p-2 w-full rounded"
+                      required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700">Last Name</label>
+                  <input
+                      type="text"
+                      name="lastName"
+                      value={profile.lastName}
+                      onChange={handleChange}
+                      className="border p-2 w-full rounded"
+                      required
+                  />
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="block text-gray-700">Phone Number</label>
                 <input
-                  type="text"
-                  name="firstName"
-                  value={profile.firstName}
-                  onChange={handleChange}
-                  className="border p-2 w-full rounded"
-                  required
+                    type="text"
+                    name="phoneNumber"
+                    value={profile.phoneNumber}
+                    onChange={handleChange}
+                    className="border p-2 w-full rounded"
                 />
               </div>
-              <div>
-                <label className="block text-gray-700">Last Name</label>
+              <div className="mt-4">
+                <label className="block text-gray-700">Address</label>
                 <input
-                  type="text"
-                  name="lastName"
-                  value={profile.lastName}
-                  onChange={handleChange}
-                  className="border p-2 w-full rounded"
-                  required
+                    type="text"
+                    name="address"
+                    value={profile.address}
+                    onChange={handleChange}
+                    className="border p-2 w-full rounded"
                 />
               </div>
-            </div>
-            <div className="mt-4">
-              <label className="block text-gray-700">Phone Number</label>
-              <input
-                type="text"
-                name="phoneNumber"
-                value={profile.phoneNumber}
-                onChange={handleChange}
-                className="border p-2 w-full rounded"
-              />
-            </div>
-            <div className="mt-4">
-              <label className="block text-gray-700">Address</label>
-              <input
-                type="text"
-                name="address"
-                value={profile.address}
-                onChange={handleChange}
-                className="border p-2 w-full rounded"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-gray-700">City</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-gray-700">City</label>
+                  <input
+                      type="text"
+                      name="city"
+                      value={profile.city}
+                      onChange={handleChange}
+                      className="border p-2 w-full rounded"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700">Country</label>
+                  <input
+                      type="text"
+                      name="country"
+                      value={profile.country}
+                      onChange={handleChange}
+                      className="border p-2 w-full rounded"
+                  />
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="block text-gray-700">ZIP Code</label>
                 <input
-                  type="text"
-                  name="city"
-                  value={profile.city}
-                  onChange={handleChange}
-                  className="border p-2 w-full rounded"
+                    type="text"
+                    name="postalCode"
+                    value={profile.postalCode}
+                    onChange={handleChange}
+                    className="border p-2 w-full rounded"
                 />
               </div>
-              <div>
-                <label className="block text-gray-700">Country</label>
-                <input
-                  type="text"
-                  name="country"
-                  value={profile.country}
-                  onChange={handleChange}
-                  className="border p-2 w-full rounded"
-                />
+              <div className="mt-6">
+                <button
+                    type="submit"
+                    className={`w-full bg-blue-500 text-white p-3 rounded-lg font-semibold hover:bg-blue-600 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={loading}
+                >
+                  {loading ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="w-full bg-gray-500 text-white p-3 rounded-lg font-semibold mt-2"
+                >
+                  Cancel
+                </button>
               </div>
-            </div>
-            <div className="mt-4">
-              <label className="block text-gray-700">ZIP Code</label>
-              <input
-                type="text"
-                name="postalCode"
-                value={profile.postalCode}
-                onChange={handleChange}
-                className="border p-2 w-full rounded"
-              />
-            </div>
-            <div className="mt-6">
-              <button
-                type="submit"
-                className={`w-full bg-blue-500 text-white p-3 rounded-lg font-semibold hover:bg-blue-600 transition duration-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={loading}
-              >
-                {loading ? "Saving..." : "Save Changes"}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="w-full bg-gray-500 text-white p-3 rounded-lg font-semibold mt-2"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
   );
 };
 

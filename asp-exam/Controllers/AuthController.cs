@@ -77,6 +77,14 @@ public class AuthController : ControllerBase
                 Expires = DateTime.UtcNow.AddDays(1),
                 SameSite = SameSiteMode.None
             });
+            
+            HttpContext.Response.Cookies.Append("Role", res.Role, new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = true,
+                Expires = DateTime.UtcNow.AddDays(1),
+                SameSite = SameSiteMode.None
+            });
 
             return Ok(new
             {
@@ -84,7 +92,8 @@ public class AuthController : ControllerBase
                 res.Username,
                 res.AccessToken,
                 res.RefreshToken,
-                res.RefreshTokenExpireTime
+                res.RefreshTokenExpireTime,
+                res.Role
             });
         }
         catch (MyAuthException ex)
@@ -192,6 +201,7 @@ public class AuthController : ControllerBase
             HttpContext.Response.Cookies.Delete("RefreshToken");
             HttpContext.Response.Cookies.Delete("Username");
             HttpContext.Response.Cookies.Delete("UserId");
+            HttpContext.Response.Cookies.Delete("Role");
 
             return Ok("Logged out successfully");
         }

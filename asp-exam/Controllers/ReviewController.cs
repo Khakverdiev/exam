@@ -1,4 +1,5 @@
-﻿using aspnetexam.Data.Contexts;
+﻿using System.Diagnostics;
+using aspnetexam.Data.Contexts;
 using aspnetexam.Data.Models;
 using aspnetexam.Data.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +13,42 @@ namespace aspnetexam.Controllers;
 public class ReviewController : Controller
 {
     private readonly AuthContext _context;
+    private readonly ILogger<ReviewController> _logger;
 
-    public ReviewController(AuthContext context)
+    public ReviewController(AuthContext context, ILogger<ReviewController> logger)
     {
         _context = context;
+        _logger = logger;
+    }
+    
+    [HttpGet]
+    [Authorize(Roles = "appuser, appadmin")]
+    public async Task<IActionResult> GetAllReviews()
+    {
+        var reviews = await _context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Product)
+            .ToListAsync();
+
+        if (reviews == null || !reviews.Any())
+        {
+            return NotFound("Отзывы не найдены.");
+        }
+
+        var reviewDtos = reviews.Select(r => new ReviewDto
+        {
+            Id = r.Id,
+            UserId = r.UserId,
+            Username = r.User.Username,
+            ProductId = r.ProductId,
+            ProductName = r.Product.Name,
+            ProductImageUrl = r.Product.ImageUrl,
+            ReviewText = r.ReviewText,
+            Rating = r.Rating,
+            CreatedAt = r.CreatedAt
+        });
+
+        return Ok(reviewDtos);
     }
 
     [HttpGet("product/{productId}")]
@@ -48,34 +81,66 @@ public class ReviewController : Controller
 
     [HttpPost]
     [Authorize(Roles = "appuser, appadmin")]
-    public async Task<ActionResult<ReviewDto>> CreateReview([FromBody] Review review)
+    public async Task<ActionResult<ReviewDto>> CreateReview([FromBody] ReviewCreateDto reviewDto)
     {
-        if (review == null)
+        try
         {
-            return BadRequest("Review cannot be null.");
+            _logger.LogInformation("Поступил запрос на создание отзыва от пользователя {UserId}", reviewDto.UserId);
+
+            if (reviewDto == null)
+            {
+                _logger.LogWarning("Получен пустой отзыв.");
+                return BadRequest("Review cannot be null.");
+            }
+
+            var user = await _context.Users.FindAsync(reviewDto.UserId);
+            var product = await _context.Products.FindAsync(reviewDto.ProductId);
+
+            if (user == null || product == null)
+            {
+                _logger.LogWarning("Пользователь или продукт не найдены. UserId: {UserId}, ProductId: {ProductId}", reviewDto.UserId, reviewDto.ProductId);
+                return NotFound("User or Product not found.");
+            }
+
+            if (!user.IsEmailConfirmed)
+            {
+                _logger.LogWarning("Пользователь {UserId} не подтвердил email.", user.Id);
+                return Forbid("Пожалуйста, подтвердите свою электронную почту, чтобы оставить отзыв.");
+            }
+
+            var review = new Review
+            {
+                UserId = reviewDto.UserId,
+                ProductId = reviewDto.ProductId,
+                ReviewText = reviewDto.ReviewText,
+                Rating = reviewDto.Rating,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Reviews.Add(review);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Отзыв создан успешно.");
+
+            var reviewResponse = new ReviewDto
+            {
+                Id = review.Id,
+                UserId = review.UserId,
+                Username = user.Username,
+                ProductId = review.ProductId,
+                ProductName = product.Name,
+                ProductImageUrl = product.ImageUrl,
+                ReviewText = review.ReviewText,
+                Rating = review.Rating,
+                CreatedAt = review.CreatedAt
+            };
+
+            return CreatedAtAction(nameof(GetReviewById), new { id = review.Id }, reviewResponse);
         }
-
-        if (!await _context.Users.AnyAsync(u => u.Id == review.UserId) ||
-            !await _context.Products.AnyAsync(p => p.Id == review.ProductId))
+        catch (Exception ex)
         {
-            return NotFound("User or Product not found.");
+            _logger.LogError(ex, "Ошибка при создании отзыва.");
+            return StatusCode(500, "An unexpected error occurred. Please try again later.");
         }
-
-        _context.Reviews.Add(review);
-        await _context.SaveChangesAsync();
-
-        var reviewDto = new ReviewDto
-        {
-            Id = review.Id,
-            UserId = review.UserId,
-            Username = (await _context.Users.FindAsync(review.UserId))?.Username,
-            ProductId = review.ProductId,
-            ReviewText = review.ReviewText,
-            Rating = review.Rating,
-            CreatedAt = review.CreatedAt
-        };
-
-        return CreatedAtAction(nameof(GetReviewById), new { id = review.Id }, reviewDto);
     }
 
     [HttpGet("{id}")]
@@ -91,7 +156,6 @@ public class ReviewController : Controller
             return NotFound("Отзыв не найден.");
         }
 
-        // Map to ReviewDto
         var reviewDto = new ReviewDto
         {
             Id = review.Id,
@@ -120,5 +184,87 @@ public class ReviewController : Controller
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+    
+    [HttpPut("{id}")]
+    [Authorize(Roles = "appuser, appadmin")]
+    public async Task<IActionResult> UpdateReview(int id, [FromBody] ReviewUpdateDto reviewDto)
+    {
+        try
+        {
+            if (reviewDto == null || string.IsNullOrWhiteSpace(reviewDto.ReviewText) || reviewDto.Rating <= 0)
+            {
+                return BadRequest("Некорректные данные для обновления отзыва.");
+            }
+
+            var review = await _context.Reviews.FindAsync(id);
+            if (review == null)
+            {
+                return NotFound("Отзыв не найден.");
+            }
+
+            var userIdFromCookie = HttpContext.Request.Cookies["UserId"];
+            if (string.IsNullOrEmpty(userIdFromCookie))
+            {
+                return Unauthorized("Не удалось получить идентификатор пользователя.");
+            }
+            
+            var user = await _context.Users.FindAsync(Guid.Parse(userIdFromCookie));
+            if (user == null)
+            {
+                return Unauthorized("Пользователь не найден.");
+            }
+
+            if (!user.IsEmailConfirmed)
+            {
+                return Forbid("Пожалуйста, подтвердите свою электронную почту, чтобы редактировать отзыв.");
+            }
+
+            if (review.UserId.ToString() != userIdFromCookie)
+            {
+                return Forbid("Вы можете редактировать только свои отзывы.");
+            }
+
+            review.ReviewText = reviewDto.ReviewText;
+            review.Rating = reviewDto.Rating;
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при обновлении отзыва: {ex.Message}");
+            return StatusCode(500, "Произошла ошибка при обновлении отзыва.");
+        }
+    }
+    
+    [HttpGet("user/{userId}")]
+    [Authorize(Roles = "appuser, appadmin")]
+    public async Task<IActionResult> GetReviewsByUser(Guid userId)
+    {
+        var reviews = await _context.Reviews
+            .Where(r => r.UserId == userId)
+            .Include(r => r.Product).Include(review => review.User)
+            .ToListAsync();
+
+        if (reviews == null || !reviews.Any())
+        {
+            return NotFound("Отзывы не найдены.");
+        }
+
+        var reviewDtos = reviews.Select(r => new ReviewDto
+        {
+            Id = r.Id,
+            UserId = r.UserId,
+            Username = r.User.Username,
+            ProductId = r.ProductId,
+            ProductName = r.Product?.Name,
+            ProductImageUrl = r.Product?.ImageUrl,
+            ReviewText = r.ReviewText,
+            Rating = r.Rating,
+            CreatedAt = r.CreatedAt
+        });
+
+        return Ok(reviewDtos);
     }
 }

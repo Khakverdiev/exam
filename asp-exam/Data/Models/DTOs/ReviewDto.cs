@@ -9,4 +9,6 @@ public class ReviewDto
     public string ReviewText { get; set; }
     public int Rating { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string ProductName { get; set; }
+    public string ProductImageUrl { get; set; }
 }

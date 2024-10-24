@@ -9,10 +9,12 @@ namespace aspnetexam.Services.Classes;
 public class AdminService : IAdminService
 {
     private readonly AuthContext _context;
+    private readonly IBlobService _blobService;
 
-    public AdminService(AuthContext context)
+    public AdminService(AuthContext context, IBlobService blobService)
     {
         _context = context;
+        _blobService = blobService;
     }
 
     public async Task<IEnumerable<Product>> GetAllProductsAsync()
@@ -47,6 +49,16 @@ public class AdminService : IAdminService
         var product = await _context.Products.FindAsync(productId);
         if (product != null)
         {
+            if (!string.IsNullOrEmpty(product.ImageUrl))
+            {
+                var imageName = Path.GetFileName(new Uri(product.ImageUrl).AbsolutePath);
+
+                var isDeleted = await _blobService.DeleteFileAsync(imageName);
+                if (!isDeleted)
+                {
+                    throw new Exception("Ошибка при удалении изображения из Blob Storage.");
+                }
+            }
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
         }
@@ -69,14 +81,19 @@ public class AdminService : IAdminService
 
     public async Task<IEnumerable<ReviewDto>> GetAllReviewsAsync()
     {
-        var reviews = await _context.Reviews.Include(r => r.User).ToListAsync();
-
+        var reviews = await _context.Reviews
+            .Include(r => r.User)
+            .Include(r => r.Product)
+            .ToListAsync();
+        
         return reviews.Select(r => new ReviewDto
         {
             Id = r.Id,
             UserId = r.UserId,
             Username = r.User.Username,
             ProductId = r.ProductId,
+            ProductName = r.Product.Name,
+            ProductImageUrl = r.Product.ImageUrl,
             ReviewText = r.ReviewText,
             Rating = r.Rating,
             CreatedAt = r.CreatedAt

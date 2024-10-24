@@ -11,6 +11,5 @@ public class Product
     public string ImageUrl { get; set; }
     public int Quantity { get; set; }
     public string Category { get; set; }
-    [JsonIgnore]
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 }

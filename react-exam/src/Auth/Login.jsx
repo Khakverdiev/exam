@@ -20,18 +20,23 @@ const Login = () => {
       });
 
       handleLogin(
-        response.data.userId,
-        response.data.username,
-        response.data.accessToken,
-        response.data.refreshToken,
-        response.data.refreshTokenExpireTime
+          response.data.userId,
+          response.data.username,
+          response.data.accessToken,
+          response.data.refreshToken,
+          response.data.refreshTokenExpireTime,
+          response.data.role
       );
 
       navigate('/home');
     } catch (err) {
       console.error("Error during login:", err);
       if (err.response && err.response.data) {
-        setError(err.response.data);
+        const errorMessage = typeof err.response.data === 'string'
+            ? err.response.data
+            : err.response.data.message || 'An error occurred. Please try again.';
+
+        setError(errorMessage);
       } else {
         setError('An error occurred. Please try again.');
       }

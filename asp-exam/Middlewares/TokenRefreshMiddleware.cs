@@ -32,9 +32,7 @@ public class TokenRefreshMiddleware : IMiddleware
         var refreshToken = context.Request.Cookies["RefreshToken"];
         var username = context.Request.Cookies["Username"];
         var userId = context.Request.Cookies["UserId"];
-
-        Console.WriteLine(
-            $"AccessToken: {accessToken}, RefreshToken: {refreshToken}, Username: {username}, UserId: {userId}");
+        var role = context.Request.Cookies["Role"];
 
         if (string.IsNullOrEmpty(accessToken) && string.IsNullOrEmpty(refreshToken))
         {
@@ -42,12 +40,12 @@ public class TokenRefreshMiddleware : IMiddleware
             return;
         }
 
-        // if (!string.IsNullOrEmpty(accessToken) && !IsAccessTokenExpired(accessToken))
-        // {
-        //     await EnsureUsernameAndUserIdCookiesSet(context, accessToken, username, userId);
-        //     await next(context);
-        //     return;
-        // }
+        if (!string.IsNullOrEmpty(accessToken) && !IsAccessTokenExpired(accessToken))
+        {
+            await EnsureInfoCookiesSet(context, accessToken, username, userId, role);
+            await next(context);
+            return;
+        }
 
         if (!string.IsNullOrEmpty(refreshToken))
         {
@@ -56,7 +54,7 @@ public class TokenRefreshMiddleware : IMiddleware
             {
                 var newAccessToken = await _tokenService.GenerateTokenAsync(user);
                 SetAccessTokenCookie(context, newAccessToken);
-                await EnsureUsernameAndUserIdCookiesSet(context, newAccessToken, user.Username, user.Id.ToString());
+                await EnsureInfoCookiesSet(context, newAccessToken, user.Username, user.Id.ToString(), user.Role);
 
                 if (user.RefreshTokenExpiryTime < DateTime.UtcNow.AddDays(7))
                 {
@@ -152,16 +150,17 @@ public class TokenRefreshMiddleware : IMiddleware
         });
     }
 
-    private async Task EnsureUsernameAndUserIdCookiesSet(HttpContext context, string accessToken, string username,
-        string userId)
+    private async Task EnsureInfoCookiesSet(HttpContext context, string accessToken, string username,
+        string userId, string role)
     {
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(userId))
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(role))
         {
             var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
             var newUsername = principal?.FindFirst(ClaimTypes.Name)?.Value;
             var newUserId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var newRole = principal?.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (!string.IsNullOrEmpty(newUsername) && !string.IsNullOrEmpty(newUserId))
+            if (!string.IsNullOrEmpty(newUsername) && !string.IsNullOrEmpty(newUserId) && !string.IsNullOrEmpty(newRole))
             {
                 context.Response.Cookies.Append("Username", newUsername, new CookieOptions
                 {
@@ -172,6 +171,14 @@ public class TokenRefreshMiddleware : IMiddleware
                 });
 
                 context.Response.Cookies.Append("UserId", newUserId, new CookieOptions
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    Expires = DateTime.UtcNow.AddDays(30),
+                    SameSite = SameSiteMode.None
+                });
+                
+                context.Response.Cookies.Append("Role", newRole, new CookieOptions
                 {
                     HttpOnly = false,
                     Secure = true,

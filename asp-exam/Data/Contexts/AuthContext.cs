@@ -15,7 +15,6 @@ public class AuthContext : DbContext
     public DbSet<Payment> Payments { get; set; }
     public DbSet<PaymentDetails> PaymentDetails { get; set; }
     public DbSet<PaymentProviderDetails> PaymentProviderDetails { get; set; }
-    public DbSet<Admin> Admins { get; set; }
 
     public AuthContext()
     {
@@ -176,7 +175,7 @@ public class AuthContext : DbContext
             .WithOne()
             .HasForeignKey<UserProfile>(up => up.UserId)
             .OnDelete(DeleteBehavior.Cascade)
-            .IsRequired(false);
+            .IsRequired();
         
         // ----------------------------------------------
         
@@ -220,36 +219,6 @@ public class AuthContext : DbContext
         paymentProviderDetailsEntity.Property(ppd => ppd.ApiKey).IsRequired().HasMaxLength(100);
         
         paymentProviderDetailsEntity.Property(ppd => ppd.SecretKey).IsRequired().HasMaxLength(100);
-        
-        // ----------------------------------------------
-        
-        var adminEntity = modelBuilder.Entity<Admin>();
-
-        adminEntity.HasKey(a => a.Id);
-
-        adminEntity.Property(a => a.Username)
-            .IsRequired()
-            .HasMaxLength(50);
-
-        adminEntity.HasIndex(a => a.Username)
-            .IsUnique();
-
-        adminEntity.Property(a => a.Email)
-            .IsRequired()
-            .HasMaxLength(50);
-
-        adminEntity.HasIndex(a => a.Email)
-            .IsUnique();
-
-        adminEntity.Property(a => a.Password)
-            .IsRequired();
-
-        adminEntity.Property(a => a.Role)
-            .IsRequired()
-            .HasMaxLength(20);
-
-        adminEntity.Property(a => a.CreatedAt)
-            .IsRequired();
         
         }
 }

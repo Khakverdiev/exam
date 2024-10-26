@@ -21,7 +21,7 @@ const Navbar = () => {
         <nav className="bg-black text-white py-4 px-6 fixed w-full z-50 shadow-md">
             <div className="container mx-auto flex justify-between items-center">
                 <div className="text-2xl font-bold">
-                    <Link to="/">Admin Panel</Link>
+                    <p>Admin Panel</p>
                 </div>
 
                 <div className="hidden md:flex space-x-6">

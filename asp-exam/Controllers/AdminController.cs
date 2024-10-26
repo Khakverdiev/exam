@@ -146,6 +146,18 @@ public class AdminController : Controller
         return Ok("Роль пользователя обновлена успешно.");
     }
     
+    [HttpPut("user/username/{username}/role")]
+    public async Task<IActionResult> UpdateUserRoleByUsername(string username, [FromBody] string role)
+    {
+        if (role != "appuser" && role != "appadmin")
+        {
+            return BadRequest("Неверная роль.");
+        }
+
+        await _adminService.UpdateUserRoleByUsernameAsync(username, role);
+        return Ok("Роль пользователя обновлена успешно.");
+    }
+    
     [HttpGet("reviews")]
     public async Task<IActionResult> GetAllReviews()
     {

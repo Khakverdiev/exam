@@ -44,6 +44,39 @@ public class UserProfileController : Controller
         return Ok(userProfileDto);
     }
 
+    [HttpGet("username/{username}")]
+    public async Task<ActionResult<UserProfileDto>> GetUserProfileByUsername(string username)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+        if (user == null)
+        {
+            return NotFound("Пользователь не найден.");
+        }
+
+        var userProfile = await _context.UserProfiles
+            .FirstOrDefaultAsync(up => up.UserId == user.Id);
+
+        if (userProfile == null)
+        {
+            return NotFound("Профиль пользователя не найден.");
+        }
+
+        var userProfileDto = new UserProfileDto
+        {
+            UserId = userProfile.UserId,
+            FirstName = userProfile.FirstName,
+            LastName = userProfile.LastName,
+            PhoneNumber = userProfile.PhoneNumber,
+            Address = userProfile.Address,
+            City = userProfile.City,
+            Country = userProfile.Country,
+            PostalCode = userProfile.PostalCode
+        };
+
+        return Ok(userProfileDto);
+    }
+    
     [HttpPut("{userId}")]
     public async Task<IActionResult> UpdateUserProfile(Guid userId, UserProfile updatedProfile)
     {

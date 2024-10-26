@@ -79,6 +79,16 @@ public class AdminService : IAdminService
         }
     }
 
+    public async Task UpdateUserRoleByUsernameAsync(string username, string role)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+        if (user != null)
+        {
+            user.Role = role;
+            await _context.SaveChangesAsync();
+        }
+    }
+
     public async Task<IEnumerable<ReviewDto>> GetAllReviewsAsync()
     {
         var reviews = await _context.Reviews

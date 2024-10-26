@@ -11,6 +11,7 @@ public interface IAdminService
     Task DeleteProductAsync(int productId);
     Task<IEnumerable<User>> GetAllUsersAsync();
     Task UpdateUserRoleAsync(Guid userId, string role);
+    Task UpdateUserRoleByUsernameAsync(string username, string role);
     Task<IEnumerable<ReviewDto>> GetAllReviewsAsync();
     Task<IEnumerable<Order>> GetAllOrdersAsync();
 }

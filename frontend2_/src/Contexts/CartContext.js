@@ -48,9 +48,13 @@ export const CartProvider = ({ children }) => {
     };
     
 
-    const removeItemFromCart = (productId) => {
-        setCartItems((prevCartItems) => prevCartItems.filter(item => item.productId !== productId));
-    };
+    const removeItemFromCart = (productId, size) => {
+        setCartItems((prevCartItems) =>
+          prevCartItems.filter(
+            (item) => !(item.productId === productId && item.size === size)
+          )
+        );
+      };
 
     const clearCart = () => {
         setCartItems([]);

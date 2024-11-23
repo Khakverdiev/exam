@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
                     if (accessToken) {
                         config.headers["Authorization"] = `Bearer ${accessToken}`;
                     } else {
-                        console.warn("AccessToken отсутствует, заголовок Authorization не добавлен.");
+                        //console.warn("AccessToken отсутствует, заголовок Authorization не добавлен.");
                     }
                     return config;
                 },

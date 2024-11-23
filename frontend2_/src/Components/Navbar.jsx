@@ -12,7 +12,7 @@ const Navbar = () => {
 
   const handleLogoutClick = () => {
     handleLogout();
-    navigate("/login");
+    navigate("/home");
   };
 
   const toggleMenu = () => {

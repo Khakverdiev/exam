@@ -4,7 +4,6 @@ using ProductService.Interfaces;
 
 namespace ProductApiService.Controllers;
 
-[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UserProductController : ControllerBase
@@ -16,6 +15,7 @@ public class UserProductController : ControllerBase
         _productService = productService;
     }
     
+    [AllowAnonymous]
     [HttpGet("all")]
     public async Task<IActionResult> GetAllProducts()
     {
@@ -23,6 +23,7 @@ public class UserProductController : ControllerBase
         return Ok(products);
     }
     
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetProductById(int id)
     {

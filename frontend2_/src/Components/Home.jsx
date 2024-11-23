@@ -36,16 +36,6 @@ const Home = () => {
     setLoading(true);
   
     try {
-      let token = accessToken;
-  
-      if (isTokenExpired(accessToken)) {
-        token = await refreshAccessToken();
-        if (!token) {
-          setError("Не удалось обновить токен. Пожалуйста, выполните повторный вход.");
-          setLoading(false);
-          return;
-        }
-      }
 
       if (cachedProducts) {
         setProducts(cachedProducts);
@@ -54,9 +44,6 @@ const Home = () => {
       }
   
       const response = await axios.get("https://localhost:7193/api/userproduct/all", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         withCredentials: true,
       });
   
@@ -78,9 +65,15 @@ const Home = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [accessToken]);
+  }, []);
 
   const handleBuy = (productId) => {
+
+    if (!username) {
+      navigate("/login");
+      return;
+    }
+
     const quantity = quantities[productId] || 1;
     const size = selectedSizes[productId];
     const product = products.find((prod) => prod.id === productId);

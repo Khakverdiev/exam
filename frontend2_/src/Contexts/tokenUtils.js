@@ -10,7 +10,7 @@ export const getTokens = (port) => {
     const refreshToken = Cookies.get(`UserRefreshToken_${port}`);
 
     if (!accessToken || !refreshToken) {
-        console.warn("Токены не найдены в cookies.");
+        //console.warn("Токены не найдены в cookies.");
     }
 
     return { accessToken, refreshToken };

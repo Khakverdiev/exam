@@ -7,6 +7,7 @@ const ProductDetails = () => {
   const { id } = useParams();
   const { accessToken, refreshAccessToken, username } = useAuth();
   const [product, setProduct] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [reviewText, setReviewText] = useState('');
@@ -35,6 +36,15 @@ const ProductDetails = () => {
       setError('Product not found.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProductReviews = async () => {
+    try {
+      const response = await axios.get(`https://localhost:7193/api/reviews/product/${id}`);
+      setReviews(response.data);
+    } catch (error) {
+      console.error('Error fetching product reviews:', error);
     }
   };
 
@@ -68,6 +78,7 @@ const ProductDetails = () => {
       );
       setReviewText('');
       setRating(1);
+      fetchProductReviews(); 
     } catch (error) {
       if (error.response && error.response.status === 403) {
         setError('Пожалуйста, подтвердите свою электронную почту, чтобы оставить отзыв.');
@@ -80,6 +91,7 @@ const ProductDetails = () => {
 
   useEffect(() => {
     fetchProductDetails();
+    fetchProductReviews(); 
   }, [id, accessToken]);
 
   const isTokenExpired = (token) => {
@@ -164,8 +176,20 @@ const ProductDetails = () => {
           Confirm Email
         </button>
       </div>
-      <br></br>
-      <br></br>
+      <div className="mt-8 max-w-2xl w-full">
+        <h3 className="text-2xl font-semibold mb-4">Reviews</h3>
+        {reviews.length === 0 ? (
+          <p className="text-gray-500">No reviews yet.</p>
+        ) : (
+          reviews.map((review) => (
+            <div key={review.id} className="border-b py-4">
+              <p className="font-bold">{review.username}</p>
+              <p>Rating: {review.rating}/5</p>
+              <p>{review.reviewText}</p>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };

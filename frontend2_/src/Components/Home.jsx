@@ -149,21 +149,25 @@ const Home = () => {
   }, [searchQuery, selectedCategory]);
 
   return (
-    <div className="flex flex-col min-h-screen pt-16">
+    <div className="flex flex-col min-h-screen pt-16 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-800 text-gray-100">
       <div className="flex-grow px-4 py-10">
-        <h1 className="text-3xl md:text-5xl font-bold text-center mb-6">Home</h1>
-        <div className="flex flex-col md:flex-row justify-center mb-6">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-8">
+          Welcome to Our Store
+        </h1>
+
+        {/* Search and Filter */}
+        <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-8">
           <input
             type="text"
-            placeholder="Поиск товаров..."
+            placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="p-3 w-full max-w-md border border-gray-700 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="p-2 ml-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="p-3 w-full max-w-md border border-gray-700 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             {categories.map((category) => (
               <option key={category} value={category}>
@@ -173,94 +177,98 @@ const Home = () => {
           </select>
         </div>
 
+        {/* Products */}
         {loading ? (
           <p className="text-center">Loading...</p>
         ) : error ? (
-          <p className="text-center text-red-500">{error}</p>
-        ) : Array.isArray(displayedProducts) && displayedProducts.length > 0 ? (
-          <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-              {displayedProducts.map((product) => (
+          <p className="text-center text-red-400">{error}</p>
+        ) : displayedProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {displayedProducts.map((product) => (
+              <div
+                key={product.id}
+                className="border border-gray-700 bg-gray-800 rounded-lg p-6 shadow-lg transform transition duration-300 hover:scale-105"
+              >
+                <h2 className="text-xl font-bold mb-2">{product.name}</h2>
+                <p className="text-gray-400 mb-2">Price: ${product.price}</p>
+                <p className="text-gray-400 mb-4">In stock: {product.quantity}</p>
                 <div
-                  key={product.id}
-                  className="border border-gray-200 rounded-lg shadow-md p-6 bg-white hover:shadow-lg transition-shadow duration-300"
+                  className="p-4 h-48 flex items-center justify-center bg-gray-900 rounded cursor-pointer"
+                  onClick={() => navigate(`/product/${product.id}`)}
                 >
-                  <h2 className="text-lg md:text-xl font-semibold mb-2">{product.name}</h2>
-                  <p className="text-gray-700 mb-4">Price: ${product.price}</p>
-                  <p className="text-gray-700 mb-4">In stock: {product.quantity}</p>
-                  <div
-                    className="p-4 h-48 md:h-64 flex items-center justify-center cursor-pointer bg-gray-100 rounded mb-4 transition-transform duration-300 hover:scale-105"
-                    onClick={() => handleProductClick(product.id)}
-                  >
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="max-w-full max-h-full object-contain"
-                    />
-                  </div>
-                  <div>
-                    <select
-                      onChange={(e) => handleSizeChange(product.id, e.target.value)}
-                      value={selectedSizes[product.id] || ""}
-                      className="p-2 border border-gray-300 rounded w-full mb-2"
-                    >
-                      <option value="">Выберите размер</option>
-                      {product.sizes.map((size) => (
-                        <option key={size} value={size}>
-                          {size}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <input
-                    type="number"
-                    min="1"
-                    defaultValue={1}
-                    onChange={(e) => handleQuantityChange(product.id, Number(e.target.value))}
-                    className="mt-2 w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="max-w-full max-h-full object-contain"
                   />
-                  <button
-                    onClick={() => handleBuy(product.id)}
-                    className="mt-4 w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300"
-                  >
-                    Buy
-                  </button>
                 </div>
-              ))}
-            </div>
-            <div className="flex justify-center mt-6">
-              {Array.from({ length: totalPages }, (_, index) => (
+                <div className="mt-4">
+                  <select
+                    onChange={(e) => setSelectedSizes((prev) => ({ ...prev, [product.id]: e.target.value }))}
+                    value={selectedSizes[product.id] || ""}
+                    className="p-2 border border-gray-700 bg-gray-800 rounded w-full text-white"
+                  >
+                    <option value="">Select size</option>
+                    {product.sizes.map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  value={quantities[product.id] || 1}
+                  onChange={(e) => setQuantities((prev) => ({ ...prev, [product.id]: +e.target.value }))}
+                  className="mt-2 w-full p-2 border border-gray-700 bg-gray-800 rounded text-white"
+                />
                 <button
-                  key={index + 1}
-                  onClick={() => handlePageChange(index + 1)}
-                  className={`mx-1 px-3 py-1 rounded ${
-                    currentPage === index + 1
-                      ? "bg-green-600 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
+                  onClick={() => handleBuy(product.id)}
+                  className="mt-4 w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 transition"
                 >
-                  {index + 1}
+                  Buy
                 </button>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         ) : (
-          <p className="text-center">Нет доступных товаров.</p>
+          <p className="text-center">No products available.</p>
         )}
+
+        {/* Pagination */}
+        <div className="flex justify-center mt-8 gap-2">
+          {Array.from({ length: totalPages }, (_, index) => (
+            <button
+              key={index + 1}
+              onClick={() => setCurrentPage(index + 1)}
+              className={`px-4 py-2 rounded ${
+                currentPage === index + 1
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* Modal */}
       {modalVisible && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded shadow-md max-w-sm w-full text-center">
-            <p className="text-red-600 font-bold mb-4">{modalMessage}</p>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-gray-800 text-white p-6 rounded-lg shadow-xl max-w-md text-center">
+            <p>{modalMessage}</p>
             <button
               onClick={() => setModalVisible(false)}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              className="mt-4 bg-purple-600 hover:bg-purple-700 py-2 px-4 rounded"
             >
               OK
             </button>
           </div>
         </div>
       )}
+
       <Footer />
     </div>
   );

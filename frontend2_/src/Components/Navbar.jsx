@@ -22,111 +22,159 @@ const Navbar = () => {
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <nav className="w-full p-4 fixed top-0 left-0 z-50 bg-black text-white">
-      <div className="flex items-center justify-between">
-        <div className="absolute left-4 flex items-center">
-          <img src={process.env.PUBLIC_URL + "/cloth.png"} alt="Cloth Icon" className="h-8 w-8" />
-          <button className="ml-2 block md:hidden focus:outline-none" onClick={toggleMenu}>
+    <nav className="fixed top-0 left-0 w-full bg-gradient-to-r from-purple-900 via-black to-gray-800 text-white shadow-lg z-50">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <img
+            src={process.env.PUBLIC_URL + "/cloth.png"}
+            alt="Logo"
+            className="h-10 w-10"
+          />
+          <h1 className="ml-2 text-2xl font-extrabold hidden md:block">ClothStore</h1>
+          <button
+            className="ml-4 block md:hidden focus:outline-none"
+            onClick={toggleMenu}
+          >
             <div
-              className={`w-6 h-1 bg-white mb-1 ${isMenuOpen ? "rotate-45 transform translate-y-2" : ""}`}
+              className={`w-6 h-1 bg-white mb-1 transition-transform ${
+                isMenuOpen ? "rotate-45 translate-y-2" : ""
+              }`}
             ></div>
-            <div className={`w-6 h-1 bg-white mb-1 ${isMenuOpen ? "opacity-0" : ""}`}></div>
-            <div className={`w-6 h-1 bg-white ${isMenuOpen ? "-rotate-45 transform -translate-y-2" : ""}`}></div>
+            <div
+              className={`w-6 h-1 bg-white mb-1 transition-opacity ${
+                isMenuOpen ? "opacity-0" : ""
+              }`}
+            ></div>
+            <div
+              className={`w-6 h-1 bg-white transition-transform ${
+                isMenuOpen ? "-rotate-45 -translate-y-2" : ""
+              }`}
+            ></div>
           </button>
         </div>
 
-        <div className="w-full flex justify-center">
-          <ul className="hidden md:flex space-x-8">
-            <li>
-              <Link to="/home" className="text-lg font-semibold hover:underline">
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link to="/about-us" className="text-lg font-semibold hover:underline">
-                About Us
-              </Link>
-            </li>
-            <li>
-              <Link to="/contacts" className="text-lg font-semibold hover:underline">
-                Contacts
-              </Link>
-            </li>
-            <li>
-              <Link to="/delivery" className="text-lg font-semibold hover:underline">
-                Delivery and Payment
-              </Link>
-            </li>
-            <li>
-              <Link to="/reviews" className="text-lg font-semibold hover:underline">
-                Reviews
-              </Link>
-            </li>
-          </ul>
+        <div className="hidden md:flex space-x-6 items-center">
+          <Link
+            to="/home"
+            className="hover:text-purple-400 transition duration-300"
+          >
+            Home
+          </Link>
+          <Link
+            to="/about-us"
+            className="hover:text-purple-400 transition duration-300"
+          >
+            About Us
+          </Link>
+          <Link
+            to="/contacts"
+            className="hover:text-purple-400 transition duration-300"
+          >
+            Contacts
+          </Link>
+          <Link
+            to="/delivery"
+            className="hover:text-purple-400 transition duration-300"
+          >
+            Delivery & Payment
+          </Link>
+          <Link
+            to="/reviews"
+            className="hover:text-purple-400 transition duration-300"
+          >
+            Reviews
+          </Link>
         </div>
 
-        <div className="absolute right-4 flex items-center">
-          <Link to="/cart" className="text-lg font-semibold hover:underline relative mr-4">
+        <div className="flex items-center space-x-4">
+          <Link to="/cart" className="relative group">
             <img
               src={process.env.PUBLIC_URL + "/k.png"}
               alt="Cart Icon"
-              className="h-8 w-8 object-contain inline-block"
+              className="h-8 w-8"
             />
             {totalItems > 0 && (
-              <span className="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5">
+              <span className="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 py-0.5 group-hover:scale-110 transition">
                 {totalItems}
               </span>
             )}
           </Link>
           {username ? (
-            <>
-              <Link to="/profile" className="text-lg font-semibold hover:underline">
-              <img
+            <div className="flex items-center space-x-4">
+              <Link to="/profile">
+                <img
                   src={process.env.PUBLIC_URL + "/human.png"}
                   alt="User Icon"
-                  className="h-8 w-8 rounded-full object-cover"
+                  className="h-8 w-8 rounded-full border-2 border-purple-500"
                 />
               </Link>
-              <button onClick={handleLogoutClick} className="ml-4">
+              <button
+                onClick={handleLogoutClick}
+                className="hover:text-red-400 transition duration-300"
+              >
                 Logout
               </button>
-            </>
+            </div>
           ) : (
-            <Link to="/login" className="text-lg font-semibold hover:underline">
+            <Link
+              to="/login"
+              className="hover:text-purple-400 transition duration-300"
+            >
               Login
             </Link>
           )}
         </div>
       </div>
 
-      <div className={`md:hidden ${isMenuOpen ? "block" : "hidden"} bg-black w-full mt-4`}>
+      {/* Mobile Menu */}
+      <div
+        className={`md:hidden ${
+          isMenuOpen ? "block" : "hidden"
+        } bg-black w-full mt-4`}
+      >
         <ul className="flex flex-col items-center space-y-4 py-4">
           <li>
-            <Link to="/home" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>
+            <Link
+              to="/home"
+              className="hover:text-purple-400 transition duration-300"
+              onClick={toggleMenu}
+            >
               Home
             </Link>
           </li>
           <li>
-            <Link to="/about-us" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>
+            <Link
+              to="/about-us"
+              className="hover:text-purple-400 transition duration-300"
+              onClick={toggleMenu}
+            >
               About Us
             </Link>
           </li>
           <li>
-            <Link to="/contacts" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>
+            <Link
+              to="/contacts"
+              className="hover:text-purple-400 transition duration-300"
+              onClick={toggleMenu}
+            >
               Contacts
             </Link>
           </li>
           <li>
             <Link
               to="/delivery"
-              className="text-lg font-semibold hover:underline"
+              className="hover:text-purple-400 transition duration-300"
               onClick={toggleMenu}
             >
-              Delivery and Payment
+              Delivery & Payment
             </Link>
           </li>
           <li>
-            <Link to="/reviews" className="text-lg font-semibold hover:underline">
+            <Link
+              to="/reviews"
+              className="hover:text-purple-400 transition duration-300"
+              onClick={toggleMenu}
+            >
               Reviews
             </Link>
           </li>
@@ -135,10 +183,10 @@ const Navbar = () => {
               <li>
                 <Link
                   to="/profile"
-                  className="text-lg font-semibold hover:underline"
+                  className="hover:text-purple-400 transition duration-300"
                   onClick={toggleMenu}
                 >
-                  {username}
+                  Profile
                 </Link>
               </li>
               <li>
@@ -147,7 +195,7 @@ const Navbar = () => {
                     handleLogoutClick();
                     toggleMenu();
                   }}
-                  className="text-lg font-semibold hover:underline"
+                  className="hover:text-red-400 transition duration-300"
                 >
                   Logout
                 </button>
@@ -155,7 +203,11 @@ const Navbar = () => {
             </>
           ) : (
             <li>
-              <Link to="/login" className="text-lg font-semibold hover:underline" onClick={toggleMenu}>
+              <Link
+                to="/login"
+                className="hover:text-purple-400 transition duration-300"
+                onClick={toggleMenu}
+              >
                 Login
               </Link>
             </li>

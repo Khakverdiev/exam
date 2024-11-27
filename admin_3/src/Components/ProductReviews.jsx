@@ -48,6 +48,32 @@ const ProductReviews = ({ productId }) => {
         }
     };
 
+    const deleteReview = async (reviewId) => {
+        try {
+            let token = accessToken;
+
+            if (isTokenExpired(accessToken)) {
+                token = await refreshAccessToken();
+                if (!token) {
+                    setError('Не удалось обновить токен. Пожалуйста, выполните повторный вход.');
+                    return;
+                }
+            }
+
+            await axios.delete(`https://localhost:7193/api/reviews/${reviewId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                withCredentials: true,
+            });
+
+            setReviews((prevReviews) => prevReviews.filter((review) => review.id !== reviewId));
+        } catch (error) {
+            setError('Ошибка при удалении отзыва. Пожалуйста, попробуйте снова.');
+            console.error('Ошибка при удалении отзыва:', error);
+        }
+    };
+
     useEffect(() => {
         fetchReviews();
     }, []);
@@ -81,6 +107,12 @@ const ProductReviews = ({ productId }) => {
                                     Дата: {new Date(review.createdAt).toLocaleDateString()}
                                 </p>
                                 <p className="text-sm text-gray-500">Author: {review.username}</p>
+                                <button
+                                    onClick={() => deleteReview(review.id)}
+                                    className="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-700 transition duration-300"
+                                >
+                                    Delete Review
+                                </button>
                             </div>
                         </div>
                     ))}

@@ -89,7 +89,7 @@ const routes = [
         element: <Order/>
       },
       {
-        path: "receipt",
+        path: "receipt/:orderId",
         element: <Receipt/>
       },
       {

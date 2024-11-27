@@ -78,12 +78,6 @@ const Navbar = () => {
           >
             Delivery & Payment
           </Link>
-          <Link
-            to="/reviews"
-            className="hover:text-purple-400 transition duration-300"
-          >
-            Reviews
-          </Link>
         </div>
 
         <div className="flex items-center space-x-4">
@@ -126,7 +120,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       <div
         className={`md:hidden ${
           isMenuOpen ? "block" : "hidden"

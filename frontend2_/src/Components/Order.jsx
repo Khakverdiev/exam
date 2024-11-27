@@ -133,10 +133,10 @@ const Order = () => {
         headers: { Authorization: `Bearer ${accessToken}` },
         withCredentials: true,
       });
-      dispatch(setOrderDetails(response.data));
+      const orderId = response.data.id;
       dispatch(setSuccessMessage("Order created successfully!"));
       clearCart();
-      navigate("/receipt", { state: { orderDetails: response.data } });
+      navigate(`/receipt/${orderId}`);
     } catch (error) {
       console.error("Error creating order:", error.response?.data || error);
       dispatch(setError(error.response?.data || "Failed to create order. Please try again."));
@@ -192,107 +192,117 @@ const Order = () => {
   }, [selectedCity, firstName, lastName, address, zipCode, phoneNumber]);
 
   return (
-    <div className="container mx-auto p-6 max-w-lg">
-      <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">Place Your Order</h1>
-
-      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-      {successMessage && <p className="text-green-500 text-center mb-4">{successMessage}</p>}
-
-      <form className="bg-white p-6 rounded-lg shadow-md mt-6">
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Select City</label>
-          <select
-            value={selectedCity}
-            onChange={(e) => dispatch(setSelectedCity(e.target.value))}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none"
-            required
+    <>
+    <br></br>
+    <br></br>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black text-white flex items-center justify-center px-4 py-8">
+      <div className="container max-w-4xl bg-gray-800 text-white p-6 rounded-lg shadow-lg">
+        <h1 className="text-4xl font-bold text-center mb-8">Place Your Order</h1>
+  
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        {successMessage && <p className="text-green-500 text-center mb-4">{successMessage}</p>}
+  
+        <form className="bg-gray-700 p-6 rounded-lg shadow-md">
+          <div className="mb-6">
+            <label className="block text-lg font-semibold mb-2">Select City</label>
+            <select
+              value={selectedCity}
+              onChange={(e) => dispatch(setSelectedCity(e.target.value))}
+              className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              required
+            >
+              <option value="">Select a city...</option>
+              {citiesOfAzerbaijan.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+          </div>
+  
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-lg font-semibold mb-2">First Name</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => dispatch(setFirstName(e.target.value))}
+                className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-lg font-semibold mb-2">Last Name</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => dispatch(setLastName(e.target.value))}
+                className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                required
+              />
+            </div>
+          </div>
+  
+          <div className="mb-6">
+            <label className="block text-lg font-semibold mb-2">Address</label>
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => dispatch(setAddress(e.target.value))}
+              className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              required
+            />
+          </div>
+  
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-lg font-semibold mb-2">Zip Code</label>
+              <input
+                type="text"
+                value={zipCode}
+                onChange={(e) => dispatch(setZipCode(e.target.value))}
+                className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-lg font-semibold mb-2">Phone Number</label>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={handlePhoneNumberChange}
+                className="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                required
+              />
+            </div>
+          </div>
+        </form>
+  
+        <div className="mt-6 bg-gray-700 p-6 rounded-lg shadow-md">
+          {clientToken && (
+            <DropIn
+              options={{ authorization: clientToken }}
+              onInstance={(instance) => setInstance(instance)}
+            />
+          )}
+        </div>
+  
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={handlePurchase}
+            disabled={!isFormComplete || !instance}
+            className={`w-full py-3 rounded-lg font-bold text-white ${
+              isFormComplete
+                ? "bg-blue-600 hover:bg-blue-700 transition duration-300"
+                : "bg-gray-500 cursor-not-allowed"
+            }`}
           >
-            <option value="">Select a city...</option>
-            {citiesOfAzerbaijan.map((city) => (
-              <option key={city} value={city}>
-                {city}
-              </option>
-            ))}
-          </select>
+            Complete Purchase
+          </button>
         </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">First Name</label>
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => dispatch(setFirstName(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">Last Name</label>
-            <input
-              type="text"
-              value={lastName}
-              onChange={(e) => dispatch(setLastName(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Address</label>
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => dispatch(setAddress(e.target.value))}
-            className="w-full p-3 border border-gray-300 rounded-lg"
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">Zip Code</label>
-            <input
-              type="text"
-              value={zipCode}
-              onChange={(e) => dispatch(setZipCode(e.target.value))}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-medium mb-2">Phone Number</label>
-            <input
-              type="tel"
-              value={phoneNumber}
-              onChange={handlePhoneNumberChange}
-              className="w-full p-3 border border-gray-300 rounded-lg"
-              required
-            />
-          </div>
-        </div>
-      </form>
-
-      <div className="flex justify-center mt-6">
-        {clientToken && (
-          <DropIn
-            options={{ authorization: clientToken }}
-            onInstance={(instance) => setInstance(instance)}
-          />
-        )}
-      </div>
-
-      <div className="flex justify-center mt-4">
-        <button
-          onClick={handlePurchase}
-          disabled={!isFormComplete || !instance}
-          className="bg-blue-500 text-white p-3 rounded-lg font-semibold hover:bg-blue-600 transition duration-300"
-        >
-          Complete Purchase
-        </button>
       </div>
     </div>
+    </>
   );
 };
 

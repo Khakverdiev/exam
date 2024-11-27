@@ -42,7 +42,7 @@ const ProductDetails = () => {
   const fetchProductReviews = async () => {
     try {
       const response = await axios.get(`https://localhost:7193/api/reviews/product/${id}`);
-      setReviews(response.data);
+      setReviews(response.data?.$values || response.data || []);
     } catch (error) {
       console.error('Error fetching product reviews:', error);
     }
@@ -107,90 +107,96 @@ const ProductDetails = () => {
   if (!product) return <p>Product not found.</p>;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen mt-20">
-      <div className="max-w-lg mx-auto p-4 border rounded shadow bg-white">
-        <h2 className="text-3xl font-bold mb-4">{product.name}</h2>
-        <p className="text-lg mb-2">Description: {product.description}</p>
-        <p className="text-lg mb-2">Price: ${product.price}</p>
-        <p className="text-lg mb-2">Available: {product.quantity}</p>
-        <div className="flex items-center justify-center mb-4">
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="max-w-full h-auto"
-          />
-        </div>
-
-        <div className="mt-6">
-          <h3 className="text-2xl font-semibold mb-2">Leave a Review</h3>
-          <form onSubmit={handleReviewSubmit}>
-            <div className="mb-4">
-              <label className="block text-lg">Rating</label>
-              <select
-                value={rating}
-                onChange={(e) => setRating(Number(e.target.value))}
-                className="w-full p-2 border border-gray-300 rounded"
+    <>
+    <br></br>
+    <br></br>
+      <div className="flex flex-col items-center justify-center min-h-screen mt-15 px-20 sm:px-8 bg-gradient-to-br from-gray-900 via-purple-900 to-black text-white">
+        <div className="max-w-4xl mx-auto bg-gray-800 p-4 rounded-lg shadow-lg">
+          <h2 className="text-4xl font-extrabold mb-6 text-center">{product.name}</h2>
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-full sm:w-2/5 h-auto rounded-lg shadow-md mb-4 sm:mb-0 hover:scale-105 transition-transform duration-300"
+            />
+            <div className="sm:ml-8 text-lg w-full sm:w-3/5">
+              <p className="mb-4">
+                <span className="font-semibold">Description:</span> {product.description}
+              </p>
+              <p className="mb-4">
+                <span className="font-semibold">Price:</span> ${product.price}
+              </p>
+              <p className="mb-4">
+                <span className="font-semibold">Available:</span> {product.quantity}
+              </p>
+            </div>
+          </div>
+  
+          <div className="mt-8">
+            <h3 className="text-2xl font-bold mb-4">Leave a Review</h3>
+            <form onSubmit={handleReviewSubmit} className="space-y-6">
+              <div>
+                <label className="block text-lg font-semibold mb-2">Rating</label>
+                <select
+                  value={rating}
+                  onChange={(e) => setRating(Number(e.target.value))}
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                >
+                  {[1, 2, 3, 4, 5].map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-lg font-semibold mb-2">Review</label>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  className="w-full p-3 bg-gray-700 text-white rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  rows="4"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3 bg-purple-600 text-white rounded-lg font-bold shadow-lg hover:bg-purple-700 transition duration-300"
               >
-                {[1, 2, 3, 4, 5].map((num) => (
-                  <option key={num} value={num}>
-                    {num}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block text-lg">Review</label>
-              <textarea
-                value={reviewText}
-                onChange={(e) => setReviewText(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                rows="4"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-black text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300"
-            >
-              Submit Review
-            </button>
-          </form>
+                Submit Review
+              </button>
+            </form>
+          </div>
         </div>
-
-        <button
-          onClick={() => navigate(-1)}
-          className="w-full mt-4 bg-black text-white py-2 px-4 rounded hover:bg-green-700 transition duration-300"
-        >
-          Back
-        </button>
-      </div>
-
-      <div className="mt-8 text-center">
-        <p className="text-red-600 mb-4">
-          Attention! To leave a review, you need to confirm your email.
-        </p>
-        <button
-          onClick={() => navigate('/profile')}
-          className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-700 transition duration-300"
-        >
-          Confirm Email
-        </button>
-      </div>
-      <div className="mt-8 max-w-2xl w-full">
-        <h3 className="text-2xl font-semibold mb-4">Reviews</h3>
-        {reviews.length === 0 ? (
-          <p className="text-gray-500">No reviews yet.</p>
-        ) : (
-          reviews.map((review) => (
-            <div key={review.id} className="border-b py-4">
-              <p className="font-bold">{review.username}</p>
-              <p>Rating: {review.rating}/5</p>
-              <p>{review.reviewText}</p>
+  
+        <div className="mt-12 max-w-4xl w-full">
+          <h3 className="text-3xl font-bold mb-6 text-center">Reviews</h3>
+          {reviews.length === 0 ? (
+            <p className="text-gray-400 text-center">No reviews yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {reviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="bg-gray-700 p-4 rounded-md shadow-md hover:shadow-lg transform hover:scale-105 transition-transform duration-300"
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-lg font-bold text-white">{review.username}</p>
+                    <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full">
+                      {review.rating} / 5
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-2">
+                    {new Date(review.createdAt).toLocaleDateString()}
+                  </p>
+                  <p className="text-gray-300 text-sm">{review.reviewText}</p>
+                </div>
+              ))}
             </div>
-          ))
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,9 +1,15 @@
-﻿using AuthAndProductData.Contexts;
+﻿using System.Net.Mail;
+using System.Net.Mime;
+using AuthAndProductData.Contexts;
 using AuthAndProductData.DTOs;
 using AuthAndProductData.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ProductService.Interfaces;
+using System.IO;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using Microsoft.Extensions.Configuration;
 
 namespace ProductService.Classes;
 
@@ -11,11 +17,13 @@ public class OrderService : IOrderService
 {
     private readonly AuthContext _context;
     private readonly IMapper _mapper;
+    private readonly IConfiguration _configuration;
 
-    public OrderService(AuthContext context, IMapper mapper)
+    public OrderService(AuthContext context, IMapper mapper, IConfiguration configuration)
     {
         _context = context;
         _mapper = mapper;
+        _configuration = configuration;
     }
     
     public async Task<OrderDto> CreateOrderAsync(OrderRequestDto request)
@@ -127,5 +135,99 @@ public class OrderService : IOrderService
 
         _context.Orders.Remove(order);
         await _context.SaveChangesAsync();
+    }
+    
+    public async Task SendOrderReceiptByEmailAsync(int orderId)
+    {
+        var order = await _context.Orders
+            .Include(o => o.User)
+            .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
+            .Include(o => o.ShippingAddress)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+    
+        if (order == null)
+            throw new KeyNotFoundException("Order not found.");
+    
+        var user = order.User;
+        if (user == null || string.IsNullOrEmpty(user.Email))
+            throw new Exception("User email not found.");
+    
+        var pdfPath = Path.Combine(Path.GetTempPath(), $"OrderReceipt_{orderId}.pdf");
+    
+        try
+        {
+            using (var fs = new FileStream(pdfPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                var document = new Document();
+                PdfWriter.GetInstance(document, fs);
+                document.Open();
+    
+                document.Add(new Paragraph("Order Receipt", FontFactory.GetFont("Arial", 16, Font.BOLD)));
+                document.Add(new Paragraph($"Order ID: {order.Id}"));
+                document.Add(new Paragraph($"Date: {order.CreatedAt:yyyy-MM-dd}"));
+                document.Add(new Paragraph($"Total Price: ${order.TotalPrice:F2}"));
+                document.Add(new Paragraph(" "));
+    
+                var table = new PdfPTable(4) { WidthPercentage = 100 };
+                table.AddCell("Product Name");
+                table.AddCell("Quantity");
+                table.AddCell("Price");
+                table.AddCell("Size");
+    
+                foreach (var item in order.OrderItems)
+                {
+                    table.AddCell(item.Product.Name);
+                    table.AddCell(item.Quantity.ToString());
+                    table.AddCell($"${item.Price:F2}");
+                    table.AddCell(item.Size ?? "N/A");
+                }
+    
+                document.Add(table);
+                document.Close();
+            }
+    
+            var emailSettings = _configuration.GetSection("Email");
+            var smtpHost = emailSettings["Host"];
+            var smtpPortString = emailSettings["Port"];
+            var smtpUsername = emailSettings["Username"];
+            var smtpPassword = emailSettings["Password"];
+    
+            if (string.IsNullOrEmpty(smtpPortString))
+            {
+                throw new Exception("SMTP port is not configured in the application settings.");
+            }
+
+            if (!int.TryParse(smtpPortString, out var smtpPort))
+            {
+                throw new Exception("SMTP port is not a valid integer.");
+            }
+            
+            using (var smtpClient = new SmtpClient(smtpHost, smtpPort))
+            {
+                smtpClient.Credentials = new System.Net.NetworkCredential(smtpUsername, smtpPassword);
+                smtpClient.EnableSsl = true;
+    
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(smtpUsername, "Shop Admin"),
+                    Subject = "Your Order Receipt",
+                    Body = "Thank you for your order! Please find your receipt attached.",
+                    IsBodyHtml = false,
+                };
+    
+                mailMessage.To.Add(user.Email);
+    
+                mailMessage.Attachments.Add(new Attachment(pdfPath, MediaTypeNames.Application.Pdf));
+    
+                await smtpClient.SendMailAsync(mailMessage);
+            }
+        }
+        finally
+        {
+            if (File.Exists(pdfPath))
+            {
+                File.Delete(pdfPath);
+            }
+        }
     }
 }

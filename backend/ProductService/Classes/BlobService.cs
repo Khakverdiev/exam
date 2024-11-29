@@ -11,7 +11,7 @@ public class BlobService : IBlobService
 
     public BlobService(BlobServiceClient blobServiceClient)
     {
-        _containerClient = blobServiceClient.GetBlobContainerClient("clothimages");
+        _containerClient = blobServiceClient.GetBlobContainerClient("clothingstoreimages");
     }
     
     public async Task<string> UploadFileAsync(IFormFile file)

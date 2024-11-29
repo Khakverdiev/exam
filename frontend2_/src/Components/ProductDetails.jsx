@@ -110,6 +110,7 @@ const ProductDetails = () => {
     <>
     <br></br>
     <br></br>
+    <br></br>
       <div className="flex flex-col items-center justify-center min-h-screen mt-15 px-20 sm:px-8 bg-gradient-to-br from-gray-900 via-purple-900 to-black text-white">
         <div className="max-w-4xl mx-auto bg-gray-800 p-4 rounded-lg shadow-lg">
           <h2 className="text-4xl font-extrabold mb-6 text-center">{product.name}</h2>

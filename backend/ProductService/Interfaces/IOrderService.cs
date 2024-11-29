@@ -10,4 +10,5 @@ public interface IOrderService
     Task<IEnumerable<OrderDto>> GetAllOrdersAsync();
     Task<OrderDto> UpdateOrderStatusAsync(int orderId, string newStatus);
     Task DeleteOrderAsync(int orderId);
+    Task SendOrderReceiptByEmailAsync(int orderId);
 }

@@ -3,12 +3,15 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { useAuth } from "../Contexts/AuthContext";
 
 const Receipt = () => {
-  const { orderId } = useParams(); // Получаем `orderId` из URL
+  const { orderId } = useParams();
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const {accessToken} = useAuth();
+  const [emailStatus, setEmailStatus] = useState("");
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -53,6 +56,20 @@ const Receipt = () => {
     doc.save("receipt.pdf");
   };
 
+  const sendReceiptByEmail = async () => {
+    setEmailStatus("");
+    try {
+      await axios.post(`https://localhost:7193/api/order/send-receipt/${orderId}`, null, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      setEmailStatus("Receipt sent successfully to your email!");
+    } catch (err) {
+      console.error("Error sending receipt:", err);
+    }
+  };
+
   if (loading) return <p>Loading receipt details...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
 
@@ -88,12 +105,26 @@ const Receipt = () => {
 
         <p className="text-lg font-bold mt-4">Total Price: ${orderDetails.totalPrice.toFixed(2)}</p>
 
-        <button
-          onClick={generatePDF}
-          className="mt-6 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300"
-        >
-          Download PDF
-        </button>
+        <div className="mt-6 flex flex-col gap-4">
+          <button
+            onClick={generatePDF}
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300"
+          >
+            Download PDF
+          </button>
+          <button
+            onClick={sendReceiptByEmail}
+            className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300"
+          >
+            Send Receipt to Email
+          </button>
+        </div>
+
+        {emailStatus && (
+          <p className={`text-center mt-4 ${emailStatus.includes("successfully") ? "text-green-500" : "text-red-500"}`}>
+            {emailStatus}
+          </p>
+        )}
       </div>
     </div>
   );

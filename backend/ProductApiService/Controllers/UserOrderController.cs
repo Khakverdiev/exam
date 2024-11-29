@@ -1,4 +1,5 @@
-﻿using AuthAndProductData.Contexts;
+﻿using System.Security.Claims;
+using AuthAndProductData.Contexts;
 using AuthAndProductData.DTOs;
 using AuthAndProductData.Models;
 using AutoMapper;
@@ -98,5 +99,26 @@ public class UserOrderController : ControllerBase
     {
         var ordersDto = await _orderService.GetAllOrdersAsync();
         return Ok(ordersDto);
+    }
+    
+    [HttpPost("send-receipt/{orderId}")]
+    public async Task<IActionResult> SendReceipt(int orderId)
+    {
+        try
+        {
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+        
+            if (user == null)
+                return Unauthorized("User not found.");
+        
+            await _orderService.SendOrderReceiptByEmailAsync(orderId);
+            return Ok("Receipt sent successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error while sending receipt.");
+            return StatusCode(500, "An error occurred while sending the receipt.");
+        }
     }
 }

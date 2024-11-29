@@ -11,9 +11,7 @@ const Delivery = () => {
               We are committed to ensuring your order is delivered quickly and securely. Below is the information about our delivery options available across Azerbaijan.
             </p>
     
-            {/* Секции с карточками */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
-              {/* Delivery Options */}
               <div className="bg-gray-800 shadow-lg rounded-lg p-6">
                 <div className="flex items-center mb-4">
                   <FaTruck className="text-purple-400 w-8 h-8 mr-4" />
@@ -24,8 +22,7 @@ const Delivery = () => {
                   <li>Express Delivery (same-day delivery available in Baku)</li>
                 </ul>
               </div>
-    
-              {/* Delivery Costs */}
+
               <div className="bg-gray-800 shadow-lg rounded-lg p-6">
                 <div className="flex items-center mb-4">
                   <FaMoneyBillWave className="text-green-400 w-8 h-8 mr-4" />
@@ -36,7 +33,6 @@ const Delivery = () => {
                 </p>
               </div>
     
-              {/* Order Tracking */}
               <div className="bg-gray-800 shadow-lg rounded-lg p-6">
                 <div className="flex items-center mb-4">
                   <FaMapMarkerAlt className="text-blue-400 w-8 h-8 mr-4" />
@@ -47,7 +43,6 @@ const Delivery = () => {
                 </p>
               </div>
     
-              {/* Delivery Policies */}
               <div className="bg-gray-800 shadow-lg rounded-lg p-6">
                 <div className="flex items-center mb-4">
                   <FaInfoCircle className="text-yellow-400 w-8 h-8 mr-4" />
@@ -61,7 +56,6 @@ const Delivery = () => {
               </div>
             </div>
     
-            {/* Contact Section */}
             <div className="mt-12 text-center max-w-2xl">
               <h2 className="text-3xl font-bold mb-4">Contact Us</h2>
               <p className="text-gray-400">

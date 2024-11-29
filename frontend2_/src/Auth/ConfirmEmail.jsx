@@ -12,11 +12,11 @@ const ConfirmEmail = () => {
     setStatus("");
 
     try {
-      console.log("AccessToken:", accessToken); // Проверка accessToken
+      console.log("AccessToken:", accessToken);
 
       const response = await axios.post(
         "https://localhost:7059/api/account/confirmemail",
-        {}, // Пустое тело запроса
+        {},
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -25,7 +25,7 @@ const ConfirmEmail = () => {
         }
       );
 
-      console.log("Response from server:", response); // Проверка ответа от сервера
+      console.log("Response from server:", response);
       setStatus(response.data.message || "Confirmation email sent. Please check your inbox.");
     } catch (error) {
       console.error("Error sending confirmation email:", error);

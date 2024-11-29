@@ -155,7 +155,6 @@ const Home = () => {
           Welcome to Our Store
         </h1>
 
-        {/* Search and Filter */}
         <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-8">
           <input
             type="text"
@@ -177,7 +176,6 @@ const Home = () => {
           </select>
         </div>
 
-        {/* Products */}
         {loading ? (
           <p className="text-center">Loading...</p>
         ) : error ? (
@@ -193,7 +191,7 @@ const Home = () => {
                 <p className="text-gray-400 mb-2">Price: ${product.price}</p>
                 <p className="text-gray-400 mb-4">In stock: {product.quantity}</p>
                 <div
-                  className="p-4 h-48 flex items-center justify-center bg-gray-900 rounded cursor-pointer"
+                  className="p-4 h-64 flex items-center justify-center bg-gray-900 rounded cursor-pointer"
                   onClick={() => navigate(`/product/${product.id}`)}
                 >
                   <img
@@ -236,7 +234,6 @@ const Home = () => {
           <p className="text-center">No products available.</p>
         )}
 
-        {/* Pagination */}
         <div className="flex justify-center mt-8 gap-2">
           {Array.from({ length: totalPages }, (_, index) => (
             <button
@@ -254,7 +251,6 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {modalVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-gray-800 text-white p-6 rounded-lg shadow-xl max-w-md text-center">
